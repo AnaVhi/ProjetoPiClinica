@@ -1,6 +1,6 @@
 package controllers;
 
-public class Usuario {
+public class Usuarios {
 	
 	
 

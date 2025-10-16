@@ -1,24 +1,27 @@
 package controllers;
 
 import models.Tutor;
+import models.Admin;
+import models.Usuario;
 import play.mvc.Controller;
 
 public class Logins extends Controller {
-
-    public static void form() {
-        render();
-    }
-
-    public static void logar(String login, String senha) {
-     	Tutor tutor = Tutor.find("login = ?1 and senha = ?2",
+	
+	public static void form() {
+		render();
+	}
+	
+	public static void logar(String login, String senha) {
+		Usuario usuario = Usuario.find("login = ?1 and senha = ?2",
               	login, senha).first();
-     	if (tutor == null) {
+     	if (usuario == null) {
           	flash.error("Login ou senha inválidos");
-          	form(); 
+          	form(); //Redireciona para form de login
      	} else {
-          	session.put("usuarioLogado", tutor.email);
+          	session.put("usuarioLogado", usuario.login);
+          	session.put("usuarioPerfil", usuario.perfil.name());
           	flash.success("Logado com sucesso!");
-          	PainelTutor.dadosPets(); 
+          //	dadosPets();
      	}
  	}
 	
@@ -27,7 +30,5 @@ public class Logins extends Controller {
 		flash.success("Você saiu do sistema!");
 		form();
 	}
- 
-    
-   
+
 }
