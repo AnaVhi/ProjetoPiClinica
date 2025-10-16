@@ -1,0 +1,39 @@
+#{extends 'main.html' /}
+#{set title:'Cadastro de Consulta' /}
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top d-flex justify-content-between align-items-center px-4">
+    <div class="d-flex align-items-center">
+        <img src="@{'/public/images/logoB.png'}" alt="Logo" class="logo-img me-2">
+    </div>
+    <div>
+        <a href="@{Animais.paginaInicial()}" class="btn btn-primary custom-btn me-2">Página Inicial</a>
+        <a href="@{Consultas.listar()}" class="btn btn-primary custom-btn">Lista de Consultas</a>
+    </div>
+</nav>
+
+<div class="container mt-5">
+    <h2>Cadastro de Consulta</h2>
+    <br>
+
+    <form action="@{Consultas.salvar}" method="post">
+        
+        <!-- Campo: Data da Consulta -->
+        <label class="form-label">Data da Consulta:</label>
+        <input class="form-control" type="date" name="consulta.dataConsulta" required />
+        <br>
+
+        <!-- Campo: Animais (select múltiplo) -->
+        <label class="form-label">Animais:</label>
+        <select class="form-control" name="consulta_animais_id" multiple required style="min-height: 120px;">
+            <option disabled>Selecione um ou mais animais</option>
+            #{list items:animais, as:'a'}
+                <option value="${a.id}" ${consulta?.animais?.contains(a) ? 'selected' : ''}>
+                    ${a.nome} (${a.especie})
+                </option>
+            #{/list}
+        </select>
+        <br>
+
+        <input type="submit" value="Cadastrar Consulta" class="btn btn-primary custom-btn me-2" onclick="return confirm('Deseja confirmar o cadastro da consulta?')" />
+    </form>
+</div>

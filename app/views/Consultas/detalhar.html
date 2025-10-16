@@ -1,0 +1,33 @@
+#{extends 'main.html' /}
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top d-flex justify-content-between align-items-center px-4">
+    <div class="d-flex align-items-center">
+        <img src="@{'/public/images/logoB.png'}" alt="Logo" class="logo-img me-2">
+    </div>
+    <div>
+        <a href="@{Animais.paginaInicial()}" class="btn btn-primary custom-btn me-2">Página Inicial</a>
+    </div>
+</nav>
+<div class="details-container">
+    <p><strong>Nome:</strong> ${tutor.nome}</p>
+    <p><strong>Email:</strong> ${tutor.email}</p>
+    <p><strong>Telefone:</strong> ${tutor.telefone}</p>
+
+    <p><strong>Animais deste tutor:</strong></p>
+
+    #{if animais && animais.size() > 0}
+    <ul>
+    #{list items:animais, as:'a'}
+    <li>${a.nome} (${a.especie} - ${a.raca})</li>
+    #{/list}
+    </ul>
+    #{/if}
+    #{elseif !animais || animais.isEmpty()}
+    <p>Este tutor ainda não possui animais cadastrados.</p>
+    #{/elseif}
+
+    <br>
+	<a href="@{Tutores.form()}" class="btn btn-primary custom-btn me-2">Cadastrar novo tutor</a><a href="@{Tutores.listar()}" class="btn btn-primary custom-btn me-2">Lista de Cadastros</a>
+	
+	        
+	        
+</div>

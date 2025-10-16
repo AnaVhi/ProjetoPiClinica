@@ -1,0 +1,48 @@
+#{extends 'main.html' /}
+#{set title:'Lista de Consultas' /}
+
+<!-- NAVBAR FIXA -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top d-flex justify-content-between align-items-center px-4">
+    <div class="d-flex align-items-center">
+        <img src="@{'/public/images/logoB.png'}" alt="Logo" class="logo-img me-2">
+    </div>
+    <div>
+        <a href="@{Animais.paginaInicial()}" class="btn btn-primary custom-btn me-2">Página Inicial</a>
+        <a href="@{Consultas.form()}" class="btn btn-primary custom-btn">Nova Consulta</a>
+    </div>
+</nav>
+
+<div class="container mt-5">
+    <h2>Lista de Consultas</h2>
+    <br>
+
+    <table class="table table-bordered table-hover">
+        <thead class="table-primary">
+            <tr>
+                <th>ID</th>
+                <th>Data da Consulta</th>
+                <th>Animais</th>
+            </tr>
+        </thead>
+        <tbody>
+            #{list items:consultas, as:'c'}
+                <tr>
+                    <td>${c.id}</td>
+                    <td>${c.dataConsulta?.format("dd/MM/yyyy")}</td>
+                    <td>
+                        <ul>
+                            #{list items:c.animais, as:'a'}
+                                <li>${a.nome} (${a.especie})</li>
+                            #{/list}
+                        </ul>
+                    </td>
+                </tr>
+            #{/list}
+            #{else}
+                <tr>
+                    <td colspan="3">Nenhuma consulta cadastrada.</td>
+                </tr>
+            #{/else}
+        </tbody>
+    </table>
+</div>

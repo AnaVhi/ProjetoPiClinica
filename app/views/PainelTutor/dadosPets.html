@@ -1,0 +1,39 @@
+#{extends 'main.html' /}
+#{set title:'Painel do Tutor' /}
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top d-flex justify-content-between align-items-center px-4">
+    <div class="d-flex align-items-center">
+        <img src="@{'/public/images/logoB.png'}" alt="Logo" class="logo-img me-2">
+    </div>
+    <div>
+		<a href="@{Logins.logout}" class="btn btn-danger custom-btn">Sair</a>
+  </div>
+</nav>
+
+<h2>Bem-vindo, ${tutor.nome}</h2>
+
+<h3>Seus Animais</h3>
+<ul>
+    #{list items:animais, as:'a'}
+        <li>${a.nome} (${a.especie})</li>
+    #{/list}
+    #{else}
+        <li>Você ainda não possui animais cadastrados.</li>
+    #{/else}
+</ul>
+
+<h3>Consultas</h3>
+<ul>
+    #{list items:consultas, as:'c'}
+        <li>${c.dataConsulta?.format("dd/MM/yyyy")} - Animais: 
+            #{list items:c.animais, as:'a'}
+                ${a.nome} 
+            #{/list}
+        </li>
+    #{/list}
+    #{else}
+        <li>Nenhuma consulta encontrada.</li>
+    #{/else}
+</ul>
+
+<a href="@{Logins.logout}" class="btn btn-danger">Sair</a>

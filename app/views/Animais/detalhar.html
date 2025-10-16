@@ -1,0 +1,22 @@
+#{extends 'main.html' /}
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top d-flex justify-content-between align-items-center px-4">
+    <div class="d-flex align-items-center">
+        <img src="@{'/public/images/logoB.png'}" alt="Logo" class="logo-img me-2">
+    </div>
+    <div>
+        <a href="@{Animais.paginaInicial()}" class="btn btn-primary custom-btn me-2">Página Inicial</a>
+    </div>
+</nav>
+
+<div class="details-container">
+    <p><strong>Nome:</strong> ${a.nome}</p>
+    <p><strong>Espécie:</strong> ${a.especie}</p>
+    <p><strong>Raça:</strong> ${a.raca}</p>
+    <p><strong>Data de nascimento:</strong> ${a.nascimento?.format("dd/MM/yyyy")}</p>
+    <p><strong>Sexo:</strong> ${a.sexo}</p>
+    <p><strong>Tutor:</strong> ${a.tutor?.nome}</p>
+
+    <br>
+	<a href="@{Animais.form()}" class="btn btn-primary custom-btn me-2">Cadastrar novo tutor</a>
+</div>

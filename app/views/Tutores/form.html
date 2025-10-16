@@ -1,0 +1,50 @@
+#{extends 'main.html' /}
+
+<!--  NAVBAR FIXA ADICIONADA -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top d-flex justify-content-between align-items-center px-4">
+    <div class="d-flex align-items-center">
+        <img src="@{'/public/images/logoB.png'}" alt="Logo" class="logo-img me-2">
+    </div>
+    <div>
+        <a href="@{Animais.paginaInicial()}" class="btn btn-primary custom-btn me-2">Página Inicial</a>
+    </div>
+</nav>
+
+
+<!-- FORMULÁRIO INTACTO -->
+<form action="@{Tutores.salvar}">
+    <input type="hidden" name="tutor.id" value="${tutor?.id}" />
+
+    <!-- Campo Nome -->
+    <label class="form-label">Nome:</label>
+    <input class="form-control" type="text" name="tutor.nome" value="${tutor?.nome}" required />
+
+    <!-- Campo Email -->
+    <label class="form-label">Email:</label>
+    <input class="form-control" type="email" name="tutor.email" value="${tutor?.email}" required />
+
+    <!-- Campo Telefone -->
+    <label class="form-label">Telefone:</label>
+    <input class="form-control" type="text" name="tutor.telefone" value="${tutor?.telefone}" required />
+
+    <!-- Campo CPF -->
+    <label class="form-label">CPF:</label>
+    <input class="form-control" type="text" name="tutor.cpf" value="${tutor?.cpf}" required />
+
+    <!-- Botão de envio -->
+    <br>
+    #{if tutor?.id != null}
+        <input class="btn btn-primary custom-btn me-2"
+               onclick="return confirm('Deseja confirmar a edição?')"
+               type="submit"
+               value="Editar" />
+    #{/if}
+
+    #{if tutor?.id == null}
+        <input class="btn btn-primary custom-btn me-2"
+               onclick="return confirm('Deseja confirmar o cadastro?')"
+               type="submit"
+               value="Cadastrar" />
+    #{/if}
+</form>
+

@@ -1,0 +1,71 @@
+#{extends 'main.html' /}
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top d-flex justify-content-between align-items-center px-4">
+    <div class="d-flex align-items-center">
+        <img src="@{'/public/images/logoB.png'}" alt="Logo" class="logo-img me-2">
+    </div>
+    <div>
+        <a href="@{Animais.paginaInicial()}" class="btn btn-primary custom-btn me-2">Página Inicial</a>
+    </div>
+</nav>
+
+<form action="@{Animais.salvar}">
+	
+	<!-- Campo oculto para o ID (necessário para edição) -->
+	#{if a?.id}
+	  <input type="hidden" name="a.id" value="${a.id}" />
+	#{/if}
+
+
+  <!-- Campo: Nome -->
+  <label>Nome:</label>
+  <input type="text" name="a.nome" value="${a?.nome}" required />
+
+  <!-- Campo: Espécie -->
+  <label>Espécie:</label>
+  <input type="text" name="a.especie" value="${a?.especie}" required />
+
+  <!-- Campo: Raça -->
+  <label>Raça:</label>
+  <input type="text" name="a.raca" value="${a?.raca}" required />
+
+  <!-- Campo: Data de nascimento -->
+  <label>Data de Nascimento:</label>
+  <input type="date" name="a.nascimento" value="${a?.nascimento?.format('yyyy-MM-dd')}" required />
+
+  <!-- Campo: Sexo com radio button -->
+  <label>Sexo:</label><br>
+  <input type="radio" name="a.sexo" value="Macho" ${a?.sexo == 'MACHO' ? 'checked' : ''}/> Macho 
+  <input type="radio" name="a.sexo" value="Femea" ${a?.sexo == 'FEMEA' ? 'checked' : ''}/> Fêmea 
+
+  <!-- Campo: Tutor (select apenas com tutores ATIVOS) -->
+  <label>Tutor:</label>
+  <select name="a.tutor.id" required>
+    <option value="">Selecione um tutor</option>
+
+    <!-- Lista de tutores -->
+    #{list items:tutores, as:'t'}
+      <option value="${t.id}" 
+        ${t.id == a?.tutor?.id ? 'selected' : ''}> <!-- ?= verifica se é edição -->
+        ${t.nome}
+      </option>
+    #{/list}
+  </select>
+<br>
+#{if a?.id != null}
+       <input class="btn btn-primary custom-btn me-2"
+              onclick="return confirm('Deseja confirmar a edição?')"
+              type="submit"
+              value="Editar" />
+   #{/if}
+
+   #{if a?.id == null}
+       <input class="btn btn-primary custom-btn me-2"
+              onclick="return confirm('Deseja confirmar o cadastro?')"
+              type="submit"
+              value="Cadastrar" />
+   #{/if}
+
+</form>
+
+
