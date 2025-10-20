@@ -40,6 +40,7 @@ public class Inicializador extends Job {
             tutor.telefone = "99999-9999";
             tutor.cpf = "123.456.789-00";
             tutor.status = Status.ATIVO;
+            tutor.usuario = usuarioAna; 
             tutor.save();
 
             Animal animal = new Animal();
