@@ -1,10 +1,14 @@
 package controllers;
 
 import models.Tutor;
+
+import java.util.List;
+
 import models.Admin;
 import models.Animal;
 import models.Consulta;
 import models.Perfil;
+import models.Status;
 import models.Usuario;
 import play.mvc.Controller;
 

@@ -2,6 +2,7 @@ package controllers;
 
 import java.util.List;
 
+import controllers.Autorizacao;
 import models.Status;
 import models.Animal;
 import models.Tutor;

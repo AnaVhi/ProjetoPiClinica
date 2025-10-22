@@ -1,0 +1,50 @@
+#{extends 'main.html' /}
+#{set title:'Painel do Tutor' /}
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top d-flex justify-content-between align-items-center px-4">
+  <div class="d-flex align-items-center">
+      <img src="@{'/public/images/logoB.png'}" alt="Logo" class="logo-img me-2">
+  </div>
+  <div>
+      <a href="@{Logins.logout}" class="btn btn-danger custom-btn">Sair</a>
+  </div>
+</nav>
+
+<div class="container mt-5">
+    <h2 class="mb-4">Painel do Tutor</h2>
+
+    <table class="table table-bordered">
+        <tr><th>Nome:</th><td>${tutor.nome}</td></tr>
+        <tr><th>Email:</th><td>${tutor.email}</td></tr>
+        <tr><th>Telefone:</th><td>${tutor.telefone}</td></tr>
+        <tr><th>CPF:</th><td>${tutor.cpf}</td></tr>
+    </table>
+
+    <h3 class="mt-4">Seus Animais</h3>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Espécie</th>
+                <th>Raça</th>
+                <th>Sexo</th>
+                <th>Nascimento</th>
+            </tr>
+        </thead>
+        <tbody>
+            #{list items:animais, as:'a'}
+                <tr>
+                    <td>${a.nome}</td>
+                    <td>${a.especie}</td>
+                    <td>${a.raca}</td>
+                    <td>${a.sexo}</td>
+                    <td>${a.nascimento?.format("dd/MM/yyyy")}</td>
+                </tr>
+            #{/list}
+            #{else}
+                <tr><td colspan="5" class="text-center">Nenhum animal cadastrado.</td></tr>
+            #{/else}
+        </tbody>
+    </table>
+</div>
