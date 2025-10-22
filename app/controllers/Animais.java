@@ -10,12 +10,11 @@ import play.mvc.Controller;
 
 public class Animais extends Controller {
 	
-	public static void paginaInicial() {
-        render();
-    }
+	
 
     // Action: lista todos os animais ativos, com busca por nome ou espécie
     public static void listar(String termo) {
+    	Autorizacao.verificarAdmin();
         List<Animal> animais;
 
         if (termo == null || termo.isEmpty()) {
@@ -35,6 +34,7 @@ public class Animais extends Controller {
 
     // Action: exibe o formulário para cadastrar ou editar um animal
     public static void form() {
+    	Autorizacao.verificarAdmin();
         List<Tutor> tutores = Tutor.find("status = ?1", Status.ATIVO).fetch(); // Só tutores ativos
         render(tutores);
     }
@@ -53,6 +53,7 @@ public class Animais extends Controller {
 
  // Action: carrega dados de um animal para edição
     public static void editar(Long id) {
+    	Autorizacao.verificarAdmin();
     	
         Animal a = Animal.findById(id); // agora a variável se chama 'a'
         List<Tutor> tutores = Tutor.find("status = ?1", Status.ATIVO).fetch();

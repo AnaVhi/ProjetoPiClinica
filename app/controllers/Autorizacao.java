@@ -10,7 +10,7 @@ public class Autorizacao extends Controller {
         String perfil = session.get("usuarioPerfil");
         if (perfil == null || !"ADMIN".equals(perfil)) {
             flash.error("Acesso negado! Apenas administradores podem acessar esta área.");
-            Application.index();
+            Application.paginaInicialAdmin();
         }
     }
 
@@ -19,7 +19,7 @@ public class Autorizacao extends Controller {
         String perfil = session.get("usuarioPerfil");
         if (perfil == null || !"TUTOR".equals(perfil)) {
             flash.error("Acesso negado! Apenas tutores podem acessar esta área.");
-            Application.index();
+            Application.paginaInicialTutor();
         }
     }
 }

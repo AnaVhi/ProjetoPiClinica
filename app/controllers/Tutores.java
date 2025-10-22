@@ -43,25 +43,6 @@ public class Tutores extends Controller {
         }
     }
 
-    // 🔹 Painel do Tutor — acessível somente a tutores logados
-    public static void painel() {
-        String login = session.get("usuarioLogado");
-
-        Usuario usuario = Usuario.find("login = ?1", login).first();
-        Tutor tutor = Tutor.find("usuario = ?1", usuario).first();
-
-        if (tutor == null) {
-            flash.error("Não foi possível carregar seus dados de tutor.");
-            Logins.form();
-        }
-
-        // Busca os animais do tutor logado
-        List<Animal> animais = Animal.find("tutor = ?1 AND status = ?2", tutor, Status.ATIVO).fetch();
-
-        render(tutor, animais);
-    }
-
-    // 🔹 Ações a seguir — exclusivas de administradores
     public static void form() {
         render();
     }

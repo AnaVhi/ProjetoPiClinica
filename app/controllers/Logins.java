@@ -31,7 +31,7 @@ public class Logins extends Controller {
 	        if (usuario.perfil == Perfil.ADMIN) {
 	            // Redireciona para página inicial administrativa
 	            flash.success("Bem-vindo, Administrador!");
-	            Application.index();
+	            Application.paginaInicialAdmin();
 	        } else if (usuario.perfil == Perfil.TUTOR) {
 	            // Busca o tutor vinculado ao usuário logado
 	            Tutor tutor = Tutor.find("usuario = ?1", usuario).first();
@@ -45,7 +45,7 @@ public class Logins extends Controller {
 	                List<Consulta> consultas = Consulta.find("select c from Consulta c join c.animais a where a.tutor = ?1 order by c.dataConsulta desc", tutor).fetch();
 
 	                // Redireciona para página personalizada
-	                renderTemplate("Tutores/painel.html", tutor, animais, consultas);
+	                renderTemplate("Application/paginaInicialTutor.html", tutor, animais, consultas);
 	            }
 	        }
 	    }
