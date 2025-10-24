@@ -1,34 +1,39 @@
 package models;
 
-import java.util.Date;
 import javax.persistence.*;
-
+import java.util.*;
+import play.data.validation.*;
 import play.db.jpa.Model;
+import play.data.validation.Required;
 
-@Entity // Indica que esta é uma entidade que será mapeada no banco de dados
+@Entity
 public class Animal extends Model {
 
-    // Nome do animal
+    @Required(message = "O nome do animal é obrigatório")
     public String nome;
 
-    // Espécie do animal (ex: cachorro, gato)
+    @Required(message = "A espécie é obrigatória")
     public String especie;
-
-    // Raça do animal
+    
+    @Required(message = "A raça é obrigatória")
     public String raca;
 
-    // Data de nascimento do animal
-    @Temporal(TemporalType.DATE) // Define que a data será salva no formato apenas de data (sem hora)
+    @Required(message = "A data de nascimento é obrigatória")
+    @InPast(message = "A data de nascimento deve ser no passado")
     public Date nascimento;
 
-    // Sexo do animal (ex: macho, fêmea)
+    @Required(message = "O sexo é obrigatório")
     public String sexo;
 
-    // Status do animal (ATIVO ou INATIVO)
-    @Enumerated(EnumType.STRING) // Diz ao JPA para salvar o texto (ATIVO/INATIVO) no banco
+    @ManyToOne
+    @Required(message = "O tutor é obrigatório")
+    public Tutor tutor;
+
+    @Enumerated(EnumType.STRING)
     public Status status;
 
-    // Relacionamento: Muitos animais pertencem a um único tutor
-    @ManyToOne
-    public Tutor tutor; // Apenas um tutor por animal
+    @Override
+    public String toString() {
+        return nome;
+    }
 }

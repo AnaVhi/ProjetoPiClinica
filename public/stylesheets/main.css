@@ -1,5 +1,10 @@
 /* ========== CSS BASE (APLICAR EM TODAS AS PÁGINAS) ========== */
 
+.error {
+	color:  white;
+}
+
+
 form:not(.form-busca-tutores form) {
     color: white !important;
 }
@@ -533,3 +538,5 @@ input[type="radio"] + * {
 input[type="radio"] {
     color: #ffffff !important;
 }
+
+

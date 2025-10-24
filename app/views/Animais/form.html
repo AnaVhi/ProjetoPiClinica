@@ -1,71 +1,121 @@
 #{extends 'main.html' /}
 
+#{if a}
+    #{set title:'Edição de Animal' /}
+#{/if}
+#{else}
+    #{set title:'Cadastro de Animal' /}
+#{/else}
+
+<!-- ALERTA DE ERROS -->
+#{ifErrors}
+<div class="alert alert-warning alert-dismissible fade show" role="alert">
+  <ul>
+    #{errors}
+      <li>${error.key} - ${error}</li>
+    #{/errors}
+  </ul>
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+#{/ifErrors}
+
+<!-- BARRA DE NAVEGAÇÃO -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top d-flex justify-content-between align-items-center px-4">
-    <div class="d-flex align-items-center">
-        <img src="@{'/public/images/logoB.png'}" alt="Logo" class="logo-img me-2">
-    </div>
-    <div>
-        <a href="@{Animais.paginaInicial()}" class="btn btn-primary custom-btn me-2">Página Inicial</a>
-    </div>
+  <div class="d-flex align-items-center">
+    <img src="@{'/public/images/logoB.png'}" alt="Logo" class="logo-img me-2">
+  </div>
+  <div>
+    <a href="@{Application.paginaInicialAdmin()}" class="btn btn-primary custom-btn me-2">Página Inicial</a>
+  </div>
 </nav>
 
-<form action="@{Animais.salvar}">
-	
-	<!-- Campo oculto para o ID (necessário para edição) -->
-	#{if a?.id}
-	  <input type="hidden" name="a.id" value="${a.id}" />
-	#{/if}
+<!-- FORMULÁRIO -->
+<form action="@{Animais.salvar}"  method="POST" class="mt-5 pt-5">
 
+    <!-- Campo oculto de ID -->
+    <input type="hidden" name="a.id" value="${a?.id}" />
 
-  <!-- Campo: Nome -->
-  <label>Nome:</label>
-  <input type="text" name="a.nome" value="${a?.nome}" required />
+    <!-- Nome -->
+    <div class="mb-3">
+        <label class="form-label">Nome:</label>
+        <input class="form-control" type="text"
+               name="a.nome"
+               value="${flash['a.nome'] ? flash['a.nome'] : a?.nome}"/>
+        <span class="error">#{error 'a.nome' /}</span>
+    </div>
 
-  <!-- Campo: Espécie -->
-  <label>Espécie:</label>
-  <input type="text" name="a.especie" value="${a?.especie}" required />
+    <!-- Espécie -->
+    <div class="mb-3">
+        <label class="form-label">Espécie:</label>
+        <input class="form-control" type="text"
+               name="a.especie"
+               value="${flash['a.especie'] ? flash['a.especie'] : a?.especie}" />
+        <span class="error">#{error 'a.especie' /}</span>
+    </div>
 
-  <!-- Campo: Raça -->
-  <label>Raça:</label>
-  <input type="text" name="a.raca" value="${a?.raca}" required />
+    <!-- Raça -->
+    <div class="mb-3">
+        <label class="form-label">Raça:</label>
+        <input class="form-control" type="text"
+               name="a.raca"
+               value="${flash['a.raca'] ? flash['a.raca'] : a?.raca}" />
+        <span class="error">#{error 'a.raca' /}</span>
+    </div>
 
-  <!-- Campo: Data de nascimento -->
-  <label>Data de Nascimento:</label>
-  <input type="date" name="a.nascimento" value="${a?.nascimento?.format('yyyy-MM-dd')}" required />
+    <!-- Data de nascimento -->
+    <div class="mb-3">
+        <label class="form-label">Data de Nascimento:</label>
+        <input class="form-control" type="date"
+               name="a.nascimento"
+               value="${flash['a.nascimento'] ? flash['a.nascimento'] : a?.nascimento?.format('yyyy-MM-dd')}"  />
+        <span class="error">#{error 'a.nascimento' /}</span>
+    </div>
 
-  <!-- Campo: Sexo com radio button -->
-  <label>Sexo:</label><br>
-  <input type="radio" name="a.sexo" value="Macho" ${a?.sexo == 'MACHO' ? 'checked' : ''}/> Macho 
-  <input type="radio" name="a.sexo" value="Femea" ${a?.sexo == 'FEMEA' ? 'checked' : ''}/> Fêmea 
+    <!-- Sexo -->
+    <div class="mb-3">
+        <label class="form-label">Sexo:</label><br>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="a.sexo" value="MACHO"
+                 ${a?.sexo == 'MACHO' ? 'checked' : ''} />
+          <label class="form-check-label">Macho</label>
+        </div>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="a.sexo" value="FEMEA"
+                 ${a?.sexo == 'FEMEA' ? 'checked' : ''} />
+          <label class="form-check-label">Fêmea</label>
+        </div>
+        <span class="error">#{error 'a.sexo' /}</span>
+    </div>
 
-  <!-- Campo: Tutor (select apenas com tutores ATIVOS) -->
-  <label>Tutor:</label>
-  <select name="a.tutor.id" required>
-    <option value="">Selecione um tutor</option>
+    <!-- Tutor -->
+    <div class="mb-3">
+        <label class="form-label">Tutor:</label>
+        <select class="form-select" name="a.tutor.id" >
+            <option value="">Selecione um tutor</option>
+            #{list items:tutores, as:'t'}
+                <option value="${t.id}"
+                    ${t.id == a?.tutor?.id ? 'selected' : ''}>
+                    ${t.nome}
+                </option>
+            #{/list}
+        </select>
+        <span class="error">#{error 'a.tutor.id' /}</span>
+    </div>
 
-    <!-- Lista de tutores -->
-    #{list items:tutores, as:'t'}
-      <option value="${t.id}" 
-        ${t.id == a?.tutor?.id ? 'selected' : ''}> <!-- ?= verifica se é edição -->
-        ${t.nome}
-      </option>
-    #{/list}
-  </select>
-<br>
-#{if a?.id != null}
-       <input class="btn btn-primary custom-btn me-2"
-              onclick="return confirm('Deseja confirmar a edição?')"
-              type="submit"
-              value="Editar" />
-   #{/if}
+    <!-- BOTÃO DE AÇÃO -->
+    <	#{if a?.id != null}
+	       <input class="btn btn-primary custom-btn me-2"
+	              onclick="return confirm('Deseja confirmar a edição?')"
+	              type="submit"
+	              value="Editar" />
+	   #{/if}
 
-   #{if a?.id == null}
-       <input class="btn btn-primary custom-btn me-2"
-              onclick="return confirm('Deseja confirmar o cadastro?')"
-              type="submit"
-              value="Cadastrar" />
-   #{/if}
-
+	   #{if a?.id == null}
+	       <input class="btn btn-primary custom-btn me-2"
+	              onclick="return confirm('Deseja confirmar o cadastro?')"
+	              type="submit"
+	              value="Cadastrar" />
+	   #{/if}
 </form>
 
 

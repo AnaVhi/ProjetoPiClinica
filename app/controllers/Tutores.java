@@ -9,39 +9,12 @@ import models.Consulta;
 import models.Status;
 import models.Tutor;
 import models.Usuario;
-import play.mvc.Before;
+import play.data.validation.Valid;
 import play.mvc.Controller;
+import play.mvc.With; 
 
+@With({Seguranca.class, AutorizacaoAdmin.class})
 public class Tutores extends Controller {
-
-    // 1. Verificação antes de cada ação
-    @Before
-    static void protegerPaginas() {
-        // Se o usuário não estiver logado
-        if (!session.contains("usuarioLogado")) {
-            flash.error("Você deve logar no sistema.");
-            Logins.form();
-        }
-
-        // Identifica qual método está sendo acessado (ex: painel, listar, etc.)
-        String action = request.actionMethod;
-
-        // O método 'painel' é exclusivo de Tutor
-        if ("painel".equals(action)) {
-            String perfil = session.get("usuarioPerfil");
-            if (!"TUTOR".equals(perfil)) {
-                flash.error("Acesso negado! Apenas tutores podem acessar esta página.");
-                Application.index();
-            }
-        } else {
-            // Todos os outros métodos são apenas para Admin
-            String perfil = session.get("usuarioPerfil");
-            if (!"ADMIN".equals(perfil)) {
-                flash.error("Acesso negado! Apenas administradores podem acessar esta página.");
-                Application.index();
-            }
-        }
-    }
 
     public static void form() {
         render();
@@ -61,30 +34,39 @@ public class Tutores extends Controller {
 
         Map<Long, List<Animal>> animaisPorTutor = new HashMap<>();
         for (Tutor t : tutores) {
-            List<Animal> animais = Animal.find("tutor.id = ?1 AND status = ?2", t.id, Status.ATIVO).fetch();
+            List<Animal> animais = Animal.find(
+                "tutor.id = ?1 AND status = ?2",
+                t.id,
+                Status.ATIVO
+            ).fetch();
             animaisPorTutor.put(t.id, animais);
         }
 
         render(tutores, termo, animaisPorTutor);
     }
-
-    public static void salvar(Tutor tutor) {
-        if (tutor.nome != null) {
-            tutor.nome = tutor.nome.toUpperCase();
+   
+      
+    public static void salvar(@Valid Tutor t) {
+        if (validation.hasErrors()) {
+            params.flash();
+            validation.keep();
+            form();
         }
 
-        if (tutor.email != null) {
-            tutor.email = tutor.email.toLowerCase();
+        validation.clear();
+        flash.clear();
+
+        if (t.id == null) {
+            t.status = Status.ATIVO;
         }
 
-        if (tutor.id == null) {
-            tutor.status = Status.ATIVO;
-        }
-
-        tutor.save();
-        detalhar(tutor);
+        t.save();
+        flash.success("Tutor cadastrado com sucesso!");
+        detalhar(t);
     }
 
+    
+    
     public static void editar(Long id) {
         Tutor tutor = Tutor.findById(id);
         renderTemplate("Tutores/form.html", tutor);
@@ -98,7 +80,11 @@ public class Tutores extends Controller {
     }
 
     public static void detalhar(Tutor tutor) {
-        List<Animal> animais = Animal.find("tutor.id = ?1 AND status = ?2", tutor.id, Status.ATIVO).fetch();
+        List<Animal> animais = Animal.find(
+            "tutor.id = ?1 AND status = ?2",
+            tutor.id,
+            Status.ATIVO
+        ).fetch();
         render(tutor, animais);
     }
 }

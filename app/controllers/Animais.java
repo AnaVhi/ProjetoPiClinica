@@ -2,26 +2,23 @@ package controllers;
 
 import java.util.List;
 
-import controllers.Autorizacao;
 import models.Status;
 import models.Animal;
 import models.Tutor;
+import play.mvc.Before;
 import play.mvc.Controller;
+import play.mvc.With;
+import play.data.validation.Valid;
 
+@With({Seguranca.class, AutorizacaoAdmin.class})
 public class Animais extends Controller {
-	
-	
 
-    // Action: lista todos os animais ativos, com busca por nome ou espécie
     public static void listar(String termo) {
-    	Autorizacao.verificarAdmin();
         List<Animal> animais;
 
         if (termo == null || termo.isEmpty()) {
-            // Lista todos os animais com status ATIVO
             animais = Animal.find("status = ?1", Status.ATIVO).fetch();
         } else {
-            // Busca por nome ou espécie, ignorando maiúsculas/minúsculas
             animais = Animal.find(
                 "(lower(nome) like ?1 or lower(especie) like ?1) and status = ?2",
                 "%" + termo.toLowerCase() + "%",
@@ -32,41 +29,46 @@ public class Animais extends Controller {
         render(animais, termo);
     }
 
-    // Action: exibe o formulário para cadastrar ou editar um animal
     public static void form() {
-    	Autorizacao.verificarAdmin();
-        List<Tutor> tutores = Tutor.find("status = ?1", Status.ATIVO).fetch(); // Só tutores ativos
+    	
+        List<Tutor> tutores = Tutor.find("status = ?1", Status.ATIVO).fetch();
         render(tutores);
     }
 
-    // Action: salva ou atualiza um animal
-    public static void salvar(Animal a) {
-       
-        // Define como ATIVO se for novo
+    public static void salvar(@Valid Animal a) {
+        if (validation.hasErrors()) {
+            params.flash();
+            validation.keep();
+            form();
+        }
+
+          validation.clear();
+        flash.clear();
+
         if (a.id == null) {
             a.status = Status.ATIVO;
         }
 
         a.save();
+        flash.success("Animal cadastrado com sucesso!");
         detalhar(a);
     }
 
- // Action: carrega dados de um animal para edição
+
+
+
+
+
     public static void editar(Long id) {
-    	Autorizacao.verificarAdmin();
-    	
-        Animal a = Animal.findById(id); // agora a variável se chama 'a'
+        Animal a = Animal.findById(id);
         List<Tutor> tutores = Tutor.find("status = ?1", Status.ATIVO).fetch();
-        renderTemplate("Animais/form.html", a, tutores); // envia como 'a' para o form
+        renderTemplate("Animais/form.html", a, tutores);
     }
 
-
-    // Action: exibe os detalhes de um animal
     public static void detalhar(Animal a) {
         render(a);
     }
 
-    // Action: remove logicamente (altera o status para INATIVO)
     public static void remover(Long id) {
         Animal animal = Animal.findById(id);
         animal.status = Status.INATIVO;

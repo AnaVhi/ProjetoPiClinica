@@ -1,23 +1,20 @@
 package models;
 
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-
+import javax.persistence.*;
+import play.data.validation.*;
 import play.db.jpa.Model;
 
 @Entity
-
 public class Usuario extends Model {
-	 
-	public String login;
-	public String senha;
-	
-	@Enumerated(EnumType.STRING)
-	public Perfil perfil;
-	
-	public Usuario() {
-		this.perfil = Perfil.TUTOR;
-	}
 
+    @Required(message = "O login é obrigatório")
+    @MinSize(value = 3, message = "O login deve ter ao menos 3 caracteres")
+    public String login;
+
+    @Required(message = "A senha é obrigatória")
+    @MinSize(value = 4, message = "A senha deve ter ao menos 4 caracteres")
+    public String senha;
+
+    @Enumerated(EnumType.STRING)
+    public Perfil perfil; 
 }

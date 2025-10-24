@@ -32,6 +32,7 @@ public class Inicializador extends Job {
 			Usuario usuarioAna = new Usuario();
 			usuarioAna.login = "ana";
 			usuarioAna.senha = "1111";
+			usuarioAna.perfil = Perfil.TUTOR;
 			usuarioAna.save();
         	
             Tutor tutor = new Tutor();
