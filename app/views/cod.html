@@ -1,0 +1,598 @@
+package controllers;
+
+import models.Pessoa;
+import models.Responsavel;
+import models.Usuario;
+import play.mvc.Controller;
+
+public class Logins extends Controller {
+	
+	public static void form() {
+		render();
+	}
+	
+	public static void logar(String login, String senha) {
+		Usuario usuario = Usuario.find("login = ?1 and senha = ?2",
+              	login, senha).first();
+     	if (usuario == null) {
+          	flash.error("Login ou senha inválidos");
+          	form(); //Redireciona para form de login
+     	} else {
+          	session.put("usuarioLogado", usuario.login);
+          	session.put("usuarioPerfil", usuario.perfil.name());
+          	flash.success("Logado com sucesso!");
+          	Projetos.listar(); //Página inicial
+     	}
+ 	}
+	
+	public static void logout() {
+		session.clear();
+		flash.success("Você saiu do sistema!");
+		form();
+	}
+
+}
+
+------------------------------------
+
+usa o @ e cone da segurença antes do método ex: @Administrador
+ 
+
+em seguranca 
+@Before
+ 	static void verificarAdministrador() {
+      	   String perfil = session.get("usuarioPerfil");
+      	   Administrador adminAnnotation = getActionAnnotation(Administrador.class);
+      	   if (adminAnnotation != null && 
+      			   !Perfil.ADMINISTRADOR.name().equals(perfil)) {
+              forbidden("Acesso restrito aos administradores do sistema");
+      	    }
+ 	}
+	
+	
+	
+	
+para perfil fixo ao criar:
+
+public Pessoa() {
+		this.status = Status.ATIVO;
+		this.perfil = Perfil.ASSISTENTE;
+	}
+
+	
+	
+---------------
+
+package security;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Target({ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Administrador {
+
+}
+
+
+
+
+
+
+1) Controle de autenticação (formulário, interceptor, exibição e logout)
+a) Seguranca.java — interceptador (usa @Before)
+
+Crie app/controllers/Seguranca.java:
+
+package controllers;
+
+import models.Operador;
+import play.mvc.Before;
+import play.mvc.Controller;
+
+/**
+ * Interceptador responsável por verificar se há operador logado.
+ * Coloque @With(Seguranca.class) nos controllers que precisam ser protegidos.
+ */
+public class Seguranca extends Controller {
+
+    @Before
+    static void verificarAutenticacao() {
+        String operadorId = session.get("operadorId");
+        if (operadorId == null) {
+            flash.error("Você precisa fazer login para acessar essa página.");
+            // redireciona para o formulário de login
+            LoginOperador.form();
+        } else {
+            try {
+                Operador op = Operador.findById(Long.parseLong(operadorId));
+                if (op == null) {
+                    session.remove("operadorId");
+                    flash.error("Sessão inválida. Faça login novamente.");
+                    LoginOperador.form();
+                } else {
+                    // disponibiliza o operador para as views
+                    renderArgs.put("operadorLogado", op);
+                }
+            } catch (Exception e) {
+                session.remove("operadorId");
+                LoginOperador.form();
+            }
+        }
+    }
+}
+
+b) LoginOperador.java — controlador de login/logout
+
+Crie app/controllers/LoginOperador.java:
+
+package controllers;
+
+import models.Operador;
+import play.data.validation.Required;
+import play.mvc.Controller;
+
+public class LoginOperador extends Controller {
+
+    public static void form() {
+        render();
+    }
+
+    public static void logar(@Required String login, @Required String senha) {
+        if (validation.hasErrors()) {
+            params.flash();
+            validation.keep();
+            form();
+        }
+
+        Operador op = Operador.find("login = ?1 and senha = ?2", login, senha).first();
+
+        if (op == null) {
+            flash.error("Credenciais inválidas.");
+            params.flash();
+            form();
+        } else {
+            session.put("operadorId", op.id.toString());
+            flash.success("Bem vindo, " + op.nome + "!");
+            // redirecionar para lista de animais ou index
+            Animais.listar(null);
+        }
+    }
+
+    public static void logout() {
+        session.clear();
+        flash.success("Você saiu com sucesso.");
+        form();
+    }
+}
+
+c) Formulário de login app/views/LoginOperador/form.html
+
+Exemplo de view simples (usar o layout main.html do projeto):
+
+#{extends 'main.html' /}
+#{set title:'Login' /}
+
+<form action="@{LoginOperador.logar}" method="POST">
+  <div class="mb-3">
+    <label>Login</label>
+    <input class="form-control" type="text" name="login" value="${flash['login']}" />
+  </div>
+  <div class="mb-3">
+    <label>Senha</label>
+    <input class="form-control" type="password" name="senha" />
+  </div>
+  <input class="btn btn-primary" type="submit" value="Entrar" />
+</form>
+
+d) Mostrar username em todas as páginas (no main.html)
+
+No layout app/views/main.html (ou equivalente), coloque onde quiser mostrar o nome do operador logado:
+
+<!-- exemplo de cabeçalho -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="@{Application.index}">Clínica</a>
+
+    <div class="d-flex">
+      #{if renderArgs.operadorLogado}
+        Olá, ${renderArgs.operadorLogado.nome} |
+        <a href="@{LoginOperador.logout}">Sair</a>
+      #{/if}
+    </div>
+  </div>
+</nav>
+
+
+Com isso o requisito (c) — exibir o username — fica atendido via renderArgs.operadorLogado (populado pelo Seguranca).
+
+2) Restrição de remoção de animais (somente veterinários logados)
+
+Edite o controller Animais (ou onde estiver o método remover) — exemplo completo do método remover:
+
+package controllers;
+
+import models.Animal;
+import models.Status;
+import models.Operador;
+import play.mvc.Controller;
+
+public class Animais extends Controller {
+
+    // ... outros métodos (form, salvar, listar, etc.)
+
+    public static void remover(Long id) {
+        // obtém operador logado (pelo session)
+        String operadorId = session.get("operadorId");
+        if (operadorId == null) {
+            flash.error("Você precisa estar logado para remover animais.");
+            LoginOperador.form();
+        }
+
+        Operador op = Operador.findById(Long.parseLong(operadorId));
+        if (op == null || !Boolean.TRUE.equals(op.veterinario)) {
+            flash.error("Apenas operadores veterinários podem remover animais.");
+            listar(null);
+        } else {
+            Animal animal = Animal.findById(id);
+            if (animal != null) {
+                animal.status = Status.INATIVO; // exclusão lógica
+                animal.save();
+                flash.success("Animal removido com sucesso.");
+            } else {
+                flash.error("Animal não encontrado.");
+            }
+            listar(null);
+        }
+    }
+}
+
+
+Comentários:
+
+Aqui eu mantenho o padrão do professor de exclusão lógica (Status.INATIVO).
+
+A verificação é feita consultando op.veterinario == true. Ajuste o nome do campo se necessário.
+
+3) Histórico dos últimos animais cadastrados pelo operador logado (sem persistência extra)
+
+Requisito: não criar nova tabela — vamos guardar na sessão do operador (server-side cookie session do Play). Estratégia: guardar na session uma string com nomes separados por | (ou JSON); manter apenas os N últimos (ex.: 5).
+
+a) Ao salvar um animal, atualize o histórico na sessão
+
+No método salvar do Animais (ou onde estiver o processamento do Animal), adicione a atualização:
+
+public static void salvar(Animal a) {
+    // validações do seu projeto...
+    if (validation.hasErrors()) {
+        params.flash();
+        validation.keep();
+        form(a);
+    }
+
+    a.nome = a.nome.trim();
+    a.save();
+
+    // ATUALIZA HISTÓRICO NA SESSÃO (últimos 5)
+    String hist = session.get("ultimosAnimais");
+    String novo = a.nome;
+    int max = 5;
+
+    // Constrói lista mantendo ordem: mais recente primeiro
+    java.util.List<String> itens = new java.util.ArrayList<>();
+    if (hist != null && !hist.isEmpty()) {
+        for (String s : hist.split("\\|")) {
+            if (!s.trim().isEmpty()) itens.add(s);
+        }
+    }
+    // evite duplicados consecutivos: se o mesmo nome já for primeiro, não repetir
+    if (itens.isEmpty() || !itens.get(0).equals(novo)) {
+        itens.add(0, novo); // adiciona início
+    }
+    // limpa itens repetidos (mantendo primeira ocorrência)
+    java.util.LinkedHashSet<String> set = new java.util.LinkedHashSet<>(itens);
+    itens = new java.util.ArrayList<>(set);
+
+    // mantém somente os max
+    if (itens.size() > max) {
+        itens = itens.subList(0, max);
+    }
+
+    // grava de volta na sessão separado por '|'
+    session.put("ultimosAnimais", String.join("|", itens));
+
+    flash.success("Animal " + a.nome + " salvo com sucesso.");
+    detalhar(a);
+}
+
+b) Exibir histórico na página de listagem de animais
+
+No controller que renderiza a listagem (listar), recupere o histórico e passe para a view:
+
+public static void listar(String termo) {
+    List<Animal> animais;
+    if (termo == null) {
+        animais = Animal.find("status <> ?1", Status.INATIVO).fetch();
+    } else {
+        animais = Animal.find("(lower(nome) like ?1) and status <> ?2",
+                "%" + termo.toLowerCase() + "%", Status.INATIVO).fetch();
+    }
+
+    // Recupera histórico da sessão e transforma em lista
+    String hist = session.get("ultimosAnimais");
+    java.util.List<String> ultimos = new java.util.ArrayList<>();
+    if (hist != null && !hist.isEmpty()) {
+        for (String s : hist.split("\\|")) {
+            if (!s.trim().isEmpty()) ultimos.add(s);
+        }
+    }
+
+    render(animais, termo, ultimos);
+}
+
+
+E na view app/views/Animais/listar.html mostre o histórico (por exemplo numa coluna lateral):
+
+#{extends 'main.html' /}
+#{set title:'Lista de Animais' /}
+
+<div class="row">
+  <div class="col-md-8">
+    <!-- listagem de animais normalmente -->
+    #{if animais.size == 0}
+      <p>Nenhum animal cadastrado.</p>
+    #{/if}
+    #{list items:animais, as:'a'}
+      <div class="card mb-2">
+        <div class="card-body">
+          <h5 class="card-title">${a.nome}</h5>
+          <p class="card-text">Descrição/Detalhes...</p>
+        </div>
+      </div>
+    #{/list}
+  </div>
+
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header">
+        Últimos animais cadastrados por você
+      </div>
+      <ul class="list-group list-group-flush">
+        #{if ultimos && ultimos.size > 0}
+          #{list items:ultimos, as:'n'}
+            <li class="list-group-item">${n}</li>
+          #{/list}
+        #{else}
+          <li class="list-group-item">Nenhum animal recente.</li>
+        #{/if}
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+
+package controllers;
+
+import java.util.List;
+
+import models.Animal;
+import models.TipoAnimal;
+import play.mvc.Controller;
+
+public class Animais extends Controller {
+	
+	public static void form() {
+		List<TipoAnimal> tipos = TipoAnimal.findAll();
+		render(tipos);
+	}
+	
+	public static void editar(Long id) {
+		Animal a = Animal.findById(id);
+		List<TipoAnimal> tipos = TipoAnimal.findAll();
+		renderTemplate("Animais/form.html", a, tipos);
+	}
+	
+	public static void listar(String nomeBusca, String mensagem) {
+		List<Animal> animais = null;
+		if (nomeBusca == null || nomeBusca.isEmpty()) {
+			animais = Animal.findAll();
+		} else {
+			animais = Animal.find("lower(nome) = ?1", 
+					nomeBusca.toLowerCase()).fetch();
+		}
+		render(animais, nomeBusca, mensagem);
+	}
+
+	public static void salvar(Animal animal) {
+		if (animal.nome == null || animal.peso == null || animal.peso < 0) {
+			String mensagem = "Verifique se nome e peso estão preenchidos ou se o peso é igual ou maior a zero";
+			listar(null, mensagem);
+		}
+		
+		Animal animalBanco = Animal.find("nome = ?1 and tipoAnimal.id = ?2", 
+				animal.nome, animal.tipoAnimal.id).first();
+		if (animalBanco != null && animal.id != animalBanco.id) {
+			String mensagem = "Já existe animal cadastrado com esse nome e tipo";
+			listar(null, mensagem);
+		}
+
+		animal.save();
+		listar(null, "");
+	}
+	
+	public static void deletar(Long id) {
+		Animal animal = Animal.findById(id);
+		
+		String mensagem = "";
+		if (!animal.extincao) {
+			animal.delete();			
+		} else {
+			mensagem = "Não é possível deletar animal em extinção";
+		}
+		listar(null, mensagem);
+	}
+}
+package jobs;
+
+import models.Operador;
+import models.TipoAnimal;
+import play.jobs.Job;
+import play.jobs.OnApplicationStart;
+
+@OnApplicationStart
+public class Inicializador extends Job {
+
+	@Override
+	public void doJob() throws Exception {
+		 if (Operador.count() == 0) {
+			 Operador op1 = new Operador();
+			 op1.nome = "Joao Silva";
+			 op1.username = "joao";
+			 op1.senha = "joao";
+			 op1.save();
+			 
+			 Operador op2 = new Operador();
+			 op2.nome = "Veterinario";
+			 op2.username = "vet";
+			 op2.senha = "vet";
+			 op2.veterinario = true;
+			 op2.save();
+		 }
+		 
+		 if (TipoAnimal.count() == 0) {
+			 TipoAnimal ta1 = new TipoAnimal();
+			 ta1.nome = "Cachorro";
+			 ta1.save();
+			 
+			 TipoAnimal ta2 = new TipoAnimal();
+			 ta2.nome = "Gato";
+			 ta2.save();
+			 
+			 TipoAnimal ta3 = new TipoAnimal();
+			 ta3.nome = "Hamster";
+			 ta3.save();
+			 
+			 TipoAnimal ta4 = new TipoAnimal();
+			 ta4.nome = "Periquito";
+			 ta4.save();
+			 
+			 TipoAnimal ta5 = new TipoAnimal();
+			 ta5.nome = "Cobra";
+			 ta5.save();
+		 }
+	}
+}
+package models;
+
+import java.util.Date;
+
+import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
+
+import play.db.jpa.Model;
+
+@Entity
+public class Animal extends Model {
+	
+	public String nome;
+	public Integer peso;
+	public Date dataNascimento;
+	public Boolean extincao;
+	
+	public Animal() {
+		this.extincao = false;
+	}
+	
+	@ManyToOne
+	public TipoAnimal tipoAnimal;
+	
+	@Override
+	public String toString() {
+		return nome;
+	}
+
+}
+package models;
+
+import javax.persistence.Entity;
+
+import play.db.jpa.Model;
+
+@Entity
+public class Operador extends Model {
+	
+	public String nome;
+	public String username;
+	public String senha;
+	public boolean veterinario;
+
+}
+package models;
+
+import javax.persistence.Entity;
+
+import play.db.jpa.Model;
+
+@Entity
+public class TipoAnimal extends Model {
+	
+	public String nome;
+
+}
+#{extends 'main.html' /}
+#{set title:'Cadastro de Animais' /}
+
+<h1>Cadastro de Animais</h1>
+
+<form action="@{Animais.salvar}" method="POST">
+
+	<input type="hidden" name="animal.id" value="${a?.id}" />
+
+	<label>Nome:</label><br />
+	<input type="text" name="animal.nome" value="${a?.nome}" /><br />
+
+	<label>Peso:</label><br />
+	<input type="text" name="animal.peso" value="${a?.peso}" /><br />
+
+	<label>Data de Nascimento:</label><br />
+	<input type="date" name="animal.dataNascimento" value="${a?.dataNascimento}" /><br />
+	
+	<label>Selecione o tipo:</label>
+	<select name="animal.tipoAnimal.id">
+		#{list items:tipos, as:'t'}
+		<option value="${t.id}">${t.nome}</option>
+		#{/list}
+	</select>
+	<br />
+
+	<input type="submit" />
+</form>
+#{extends 'main.html' /}
+#{set title:'Listagem de Animais' /}
+
+<h1>Listagem de Animais</h1>
+
+${mensagem}
+
+<form action="@{Animais.listar}">
+	<label>Buscar animal:</label>
+	<input type="text" name="nomeBusca" value="${nomeBusca}" />
+	<input type="submit" value="Pesquisar" />
+</form>
+
+<ul>
+	#{list items:animais, as:'animal'}
+	<li>${animal}  
+		| <a href="@{Animais.editar(animal.id)}">Editar</a>
+		| <a href="@{Animais.deletar(animal.id)}">Remover</a>
+	</li>
+	#{/list}
+	#{else}
+	<li>Nenhum animal cadastrado.</li>
+	#{/else}
+</ul>
+
+<a href="@{Animais.form}">Cadastrar Novo Animal</a>

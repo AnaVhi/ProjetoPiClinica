@@ -1,13 +1,12 @@
 #{extends 'main.html' /}
 #{set title:'Lista de Consultas' /}
 
-<!-- NAVBAR FIXA -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top d-flex justify-content-between align-items-center px-4">
     <div class="d-flex align-items-center">
         <img src="@{'/public/images/logoB.png'}" alt="Logo" class="logo-img me-2">
     </div>
     <div>
-        <a href="@{Animais.paginaInicial()}" class="btn btn-primary custom-btn me-2">Página Inicial</a>
+        <a href="@{Application.paginaInicialAdmin()}" class="btn btn-primary custom-btn me-2">Página Inicial</a>
         <a href="@{Consultas.form()}" class="btn btn-primary custom-btn">Nova Consulta</a>
     </div>
 </nav>
@@ -15,33 +14,46 @@
 <div class="container mt-5">
     <h2>Lista de Consultas</h2>
     <br>
-
+    
     <table class="table table-bordered table-hover">
         <thead class="table-primary">
             <tr>
                 <th>ID</th>
                 <th>Data da Consulta</th>
+                <th>Quantidade de Animais</th>
                 <th>Animais</th>
+                <th>Ações</th>
             </tr>
         </thead>
         <tbody>
             #{list items:consultas, as:'c'}
-                <tr>
-                    <td>${c.id}</td>
-                    <td>${c.dataConsulta?.format("dd/MM/yyyy")}</td>
-                    <td>
-                        <ul>
-                            #{list items:c.animais, as:'a'}
-                                <li>${a.nome} (${a.especie})</li>
-                            #{/list}
-                        </ul>
-                    </td>
-                </tr>
+            <tr>
+                <td>${c.id}</td>
+                <td>${c.dataConsulta?.format("dd/MM/yyyy")}</td>
+                <td>${c.animais?.size() ?: 0}</td>
+                <td>
+                    #{if c.animais && c.animais.size() > 0}
+                    <ul style="margin: 0; padding-left: 20px;">
+                        #{list items:c.animais, as:'a'}
+                        <li>${a.nome} (${a.especie}) - ${a.tutor?.nome}</li>
+                        #{/list}
+                    </ul>
+                    #{/if}
+                    #{else}
+                    Nenhum animal
+                    #{/else}
+                </td>
+                <td>
+                    <a href="@{Consultas.detalhar(c.id)}">Detalhar</a> |
+                    <a href="@{Consultas.remover(c.id)}" 
+                       onclick="return confirm('Confirma a exclusão desta consulta?')">Excluir</a>
+                </td>
+            </tr>
             #{/list}
             #{else}
-                <tr>
-                    <td colspan="3">Nenhuma consulta cadastrada.</td>
-                </tr>
+            <tr>
+                <td colspan="5" class="text-center">Nenhuma consulta cadastrada.</td>
+            </tr>
             #{/else}
         </tbody>
     </table>

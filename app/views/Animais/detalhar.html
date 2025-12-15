@@ -10,13 +10,15 @@
 </nav>
 
 <div class="details-container">
+
     <p><strong>Nome:</strong> ${a.nome}</p>
     <p><strong>Espécie:</strong> ${a.especie}</p>
     <p><strong>Raça:</strong> ${a.raca}</p>
     <p><strong>Data de nascimento:</strong> ${a.nascimento?.format("dd/MM/yyyy")}</p>
     <p><strong>Sexo:</strong> ${a.sexo}</p>
     <p><strong>Tutor:</strong> ${a.tutor?.nome}</p>
-
+    
     <br>
-	<a href="@{Animais.form()}" class="btn btn-primary custom-btn me-2">Cadastrar novo tutor</a>
+    <a href="@{Animais.form()}" class="btn btn-primary custom-btn me-2">Cadastrar novo animal</a>
+    <a href="@{Animais.listar(null)}" class="btn btn-secondary">Lista de Animais</a>
 </div>

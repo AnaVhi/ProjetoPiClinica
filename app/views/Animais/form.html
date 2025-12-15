@@ -10,28 +10,27 @@
 <!-- ALERTA DE ERROS -->
 #{ifErrors}
 <div class="alert alert-warning alert-dismissible fade show" role="alert">
-  <ul>
-    #{errors}
-      <li>${error.key} - ${error}</li>
-    #{/errors}
-  </ul>
-  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <ul>
+        #{errors}
+        <li>${error.key} - ${error}</li>
+        #{/errors}
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 #{/ifErrors}
 
 <!-- BARRA DE NAVEGAÇÃO -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top d-flex justify-content-between align-items-center px-4">
-  <div class="d-flex align-items-center">
-    <img src="@{'/public/images/logoB.png'}" alt="Logo" class="logo-img me-2">
-  </div>
-  <div>
-    <a href="@{Application.paginaInicialAdmin()}" class="btn btn-primary custom-btn me-2">Página Inicial</a>
-  </div>
+    <div class="d-flex align-items-center">
+        <img src="@{'/public/images/logoB.png'}" alt="Logo" class="logo-img me-2">
+    </div>
+    <div>
+        <a href="@{Application.paginaInicialAdmin()}" class="btn btn-primary custom-btn me-2">Página Inicial</a>
+    </div>
 </nav>
 
 <!-- FORMULÁRIO -->
-<form action="@{Animais.salvar}"  method="POST" class="mt-5 pt-5">
-
+<form action="@{Animais.salvar}" method="POST" enctype="multipart/form-data" class="mt-5 pt-5">
     <!-- Campo oculto de ID -->
     <input type="hidden" name="a.id" value="${a?.id}" />
 
@@ -67,7 +66,7 @@
         <label class="form-label">Data de Nascimento:</label>
         <input class="form-control" type="date"
                name="a.nascimento"
-               value="${flash['a.nascimento'] ? flash['a.nascimento'] : a?.nascimento?.format('yyyy-MM-dd')}"  />
+               value="${flash['a.nascimento'] ? flash['a.nascimento'] : a?.nascimento?.format('yyyy-MM-dd')}" />
         <span class="error">#{error 'a.nascimento' /}</span>
     </div>
 
@@ -75,14 +74,14 @@
     <div class="mb-3">
         <label class="form-label">Sexo:</label><br>
         <div class="form-check form-check-inline">
-          <input class="form-check-input" type="radio" name="a.sexo" value="MACHO"
-                 ${a?.sexo == 'MACHO' ? 'checked' : ''} />
-          <label class="form-check-label">Macho</label>
+            <input class="form-check-input" type="radio" name="a.sexo" value="MACHO"
+                   ${a?.sexo == 'MACHO' ? 'checked' : ''} />
+            <label class="form-check-label">Macho</label>
         </div>
         <div class="form-check form-check-inline">
-          <input class="form-check-input" type="radio" name="a.sexo" value="FEMEA"
-                 ${a?.sexo == 'FEMEA' ? 'checked' : ''} />
-          <label class="form-check-label">Fêmea</label>
+            <input class="form-check-input" type="radio" name="a.sexo" value="FEMEA"
+                   ${a?.sexo == 'FEMEA' ? 'checked' : ''} />
+            <label class="form-check-label">Fêmea</label>
         </div>
         <span class="error">#{error 'a.sexo' /}</span>
     </div>
@@ -90,32 +89,72 @@
     <!-- Tutor -->
     <div class="mb-3">
         <label class="form-label">Tutor:</label>
-        <select class="form-select" name="a.tutor.id" >
+        <select class="form-select" name="a.tutor.id">
             <option value="">Selecione um tutor</option>
             #{list items:tutores, as:'t'}
-                <option value="${t.id}"
-                    ${t.id == a?.tutor?.id ? 'selected' : ''}>
-                    ${t.nome}
-                </option>
+            <option value="${t.id}" ${t.id == a?.tutor?.id ? 'selected' : ''}>
+                ${t.nome}
+            </option>
             #{/list}
         </select>
         <span class="error">#{error 'a.tutor.id' /}</span>
     </div>
 
-    <!-- BOTÃO DE AÇÃO -->
-    <	#{if a?.id != null}
-	       <input class="btn btn-primary custom-btn me-2"
-	              onclick="return confirm('Deseja confirmar a edição?')"
-	              type="submit"
-	              value="Editar" />
-	   #{/if}
+    <!-- : OPÇÃO DE FOTO -->
+    #{if a?.id == null}
+    <div class="mb-3">
+        <label class="form-label">Foto do Animal:</label><br>
+        
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="opcaoFoto" 
+                   id="semFoto" value="semFoto" checked onclick="toggleFotoUpload()">
+            <label class="form-check-label" for="semFoto">
+                Sem foto (usar padrão)
+            </label>
+        </div>
+        
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="opcaoFoto" 
+                   id="comFoto" value="comFoto" onclick="toggleFotoUpload()">
+            <label class="form-check-label" for="comFoto">
+                Com foto
+            </label>
+        </div>
+        
+        <div id="uploadFoto" style="display: none; margin-top: 10px;">
+            <input class="form-control" type="file" name="foto" accept="image/*" />
+            <small class="form-text text-muted">Formatos aceitos: JPG, PNG, GIF</small>
+        </div>
+    </div>
+    #{/if}
 
-	   #{if a?.id == null}
-	       <input class="btn btn-primary custom-btn me-2"
-	              onclick="return confirm('Deseja confirmar o cadastro?')"
-	              type="submit"
-	              value="Cadastrar" />
-	   #{/if}
+    <!-- BOTÃO DE AÇÃO -->
+    #{if a?.id != null}
+        <input class="btn btn-primary custom-btn me-2"
+               onclick="return confirm('Deseja confirmar a edição?')"
+               type="submit"
+               value="Editar" />
+    #{/if}
+    #{if a?.id == null}
+        <input class="btn btn-primary custom-btn me-2"
+               onclick="return confirm('Deseja confirmar o cadastro?')"
+               type="submit"
+               value="Cadastrar" />
+    #{/if}
+    
+    <a href="@{Animais.listar(null)}" class="btn btn-secondary">Cancelar</a>
 </form>
 
-
+<!-- SCRIPT PARA MOSTRAR/OCULTAR CAMPO DE UPLOAD -->
+<script>
+function toggleFotoUpload() {
+    var comFoto = document.getElementById('comFoto').checked;
+    var uploadDiv = document.getElementById('uploadFoto');
+    
+    if (comFoto) {
+        uploadDiv.style.display = 'block';
+    } else {
+        uploadDiv.style.display = 'none';
+    }
+}
+</script>

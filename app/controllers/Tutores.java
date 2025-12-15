@@ -1,11 +1,11 @@
 package controllers;
 
 import java.util.Map;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 import models.Animal;
-import models.Consulta;
 import models.Status;
 import models.Tutor;
 import models.Usuario;
@@ -18,6 +18,19 @@ public class Tutores extends Controller {
 
     public static void form() {
         render();
+    }
+    
+    public static void listarAjax(String termo) {
+        List<Tutor> tutores = null;
+        if (termo == null || termo.isEmpty()) {
+            tutores = Tutor.find("status <> ?1", Status.INATIVO).fetch();
+        } else {
+            tutores = Tutor.find("(lower(nome) like ?1 " +
+                    "or lower(email) like ?1) and status <> ?2",
+                    "%" + termo.toLowerCase() + "%",
+                    Status.INATIVO).fetch();
+        }
+        renderJSON(tutores);
     }
 
     public static void listar(String termo) {
@@ -69,6 +82,12 @@ public class Tutores extends Controller {
     
     public static void editar(Long id) {
         Tutor tutor = Tutor.findById(id);
+        
+        if (tutor == null) {
+            flash.error("Tutor não encontrado!");
+            listar(null);
+        }
+        
         renderTemplate("Tutores/form.html", tutor);
     }
 
@@ -80,11 +99,15 @@ public class Tutores extends Controller {
     }
 
     public static void detalhar(Tutor tutor) {
-        List<Animal> animais = Animal.find(
-            "tutor.id = ?1 AND status = ?2",
-            tutor.id,
-            Status.ATIVO
-        ).fetch();
-        render(tutor, animais);
+        List<Animal> animais = Animal.find("status = ?1", Status.ATIVO).fetch();
+        List<Animal> animaisDoTutor = new ArrayList<>();
+        
+        for (Animal a : animais) {
+            if (a.tutor != null && a.tutor.id.equals(tutor.id)) {
+                animaisDoTutor.add(a);
+            }
+        }
+        
+        render(tutor, animaisDoTutor);
     }
 }

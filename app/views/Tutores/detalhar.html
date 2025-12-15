@@ -14,17 +14,16 @@
 
     <p><strong>Animais deste tutor:</strong></p>
 
-    #{if animais && animais.size() > 0}
-    <ul>
-    #{list items:animais, as:'a'}
-    <li>${a.nome} (${a.especie} - ${a.raca})</li>
-    #{/list}
-    </ul>
-    #{/if}
-    #{elseif !animais || animais.isEmpty()}
-    <p>Este tutor ainda não possui animais cadastrados.</p>
-    #{/elseif}
-
+	#{if animais && animais.size() > 0}
+	   <ul>
+	   #{list items:animais, as:'a'}
+	   <li>${a.nome} (${a.especie} - ${a.raca})</li>
+	   #{/list}
+	   </ul>
+	   #{/if}
+	   #{elseif !animais || animais.isEmpty()}
+	   <p>Este tutor ainda não possui animais cadastrados.</p>
+	   #{/elseif}
     <br>
 	<a href="@{Tutores.form()}" class="btn btn-primary custom-btn me-2">Cadastrar novo tutor</a><a href="@{Tutores.listar()}" class="btn btn-primary custom-btn me-2">Lista de Cadastros</a>
 	

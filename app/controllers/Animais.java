@@ -1,21 +1,24 @@
 package controllers;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.List;
-
 import models.Status;
 import models.Animal;
 import models.Tutor;
+import play.libs.MimeTypes;
 import play.mvc.Before;
 import play.mvc.Controller;
 import play.mvc.With;
 import play.data.validation.Valid;
+import play.db.jpa.Blob;
 
 @With({Seguranca.class, AutorizacaoAdmin.class})
 public class Animais extends Controller {
 
     public static void listar(String termo) {
         List<Animal> animais;
-
         if (termo == null || termo.isEmpty()) {
             animais = Animal.find("status = ?1", Status.ATIVO).fetch();
         } else {
@@ -25,39 +28,34 @@ public class Animais extends Controller {
                 Status.ATIVO
             ).fetch();
         }
-
         render(animais, termo);
     }
 
     public static void form() {
-    	
         List<Tutor> tutores = Tutor.find("status = ?1", Status.ATIVO).fetch();
         render(tutores);
     }
 
-    public static void salvar(@Valid Animal a) {
+  
+    public static void salvar(@Valid Animal a, File foto, String opcaoFoto) throws FileNotFoundException {
         if (validation.hasErrors()) {
             params.flash();
             validation.keep();
             form();
         }
 
-          validation.clear();
+        validation.clear();
         flash.clear();
 
         if (a.id == null) {
             a.status = Status.ATIVO;
         }
 
+
         a.save();
         flash.success("Animal cadastrado com sucesso!");
         detalhar(a);
     }
-
-
-
-
-
 
     public static void editar(Long id) {
         Animal a = Animal.findById(id);
@@ -75,4 +73,5 @@ public class Animais extends Controller {
         animal.save();
         listar(null);
     }
+
 }

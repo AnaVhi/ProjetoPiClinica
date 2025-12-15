@@ -9,56 +9,86 @@
     </div>
 </nav>
 
-
-<!-- Campo de busca -->
+<!-- Campo de pesquisa -->
 <div class="form-busca-tutores">
-  <form method="GET" action="@{Tutores.listar}">
-    <input type="text" name="termo" value="${termo}" placeholder="Buscar por nome ou email" />
-    <button type="submit">Pesquisar</button>
-  </form>
-  <a href="@{Tutores.form()}" class="btn btn-primary custom-btn">Cadastrar novo tutor</a>
+    <form id="buscarTutores" method="GET" action="@{Tutores.listar}">
+        <input type="text" id="termo" name="termo" value="${termo}" placeholder="Buscar por nome ou email" />
+        <button type="submit">Pesquisar</button>
+    </form>
+    <a href="@{Tutores.form()}" class="btn btn-primary custom-btn">Cadastrar novo tutor</a>
 </div>
 
-<table border="1" cellpadding="8" cellspacing="0">
-  <thead>
-    <tr>
-      <th>Nome</th>
-      <th>Email</th>
-      <th>Telefone</th>
-	  <th>CPF</th>
-      <th>Animais</th>
-      <th>Ações</th>
-    </tr>
-  </thead>
-  <tbody>
-    #{list items:tutores, as:'t'}
-      <tr>
-        <td>${t.nome}</td>
-        <td>${t.email}</td>
-        <td>${t.telefone}</td>
-		<td>${t.cpf}</td>
-		<td>
-		  #{if animaisPorTutor.get(t.id) && animaisPorTutor.get(t.id).size() > 0}
-		    <ul>
-		      #{list items:animaisPorTutor.get(t.id), as:'a'}
-		        <li>${a.nome} (${a.especie})</li>
-		      #{/list}
-		    </ul>
-		  #{/if}
-		  #{if !animaisPorTutor.get(t.id) || animaisPorTutor.get(t.id).size() == 0}
-		    Nenhum animal cadastrado.
-		  #{/if}
-		</td>
-        <td>
-		   
-		   <a href="@{Tutores.detalhar(t)}">Detalhar</a> |
-		   <a href="@{Tutores.remover(t.id)}" onclick="return confirm('Confirma exclusão?')">Excluir</a> |
-		   <a href="@{Tutores.editar(t.id)}">Editar</a>
-		   
-        </td>
-      </tr>
-    #{/list}
-  </tbody>
-</table>
+<!-- Tabela com os tutores -->
+<div id="resultado-tutores">
+    <table border="1" cellpadding="10" cellspacing="0">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Telefone</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody id="tabela-corpo">
+            #{list items:tutores, as:'t'}
+            <tr>
+                <td>${t.id}</td>
+                <td>${t.nome}</td>
+                <td>${t.email}</td>
+                <td>${t.telefone}</td>
+                <td>
+                    <a href="@{Tutores.detalhar(t)}">Detalhar</a> |
+                    <a href="@{Tutores.remover(t.id)}" onclick="return confirm('Confirma exclusão?')">Excluir</a> |
+                    <a href="@{Tutores.editar(t.id)}">Editar</a>
+                </td>
+            </tr>
+            #{/list}
+            #{else}
+            <tr>
+                <td colspan="6">Nenhum tutor encontrado.</td>
+            </tr>
+            #{/else}
+        </tbody>
+    </table>
+</div>
 
-<br>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    $("#buscarTutores").submit(function(e) {
+        e.preventDefault();
+        
+        $.ajax({
+            type: "POST",
+            url: "@{Tutores.listarAjax}",
+            data: $("#buscarTutores").serialize(),
+            success: function(data) {
+                $("#tabela-corpo").empty();
+                
+                if (data.length === 0) {
+                    $("#tabela-corpo").append("<tr><td colspan='6'>Nenhum tutor encontrado.</td></tr>");
+                } else {
+                    $.each(data, function(i, tutor) {
+                        var row = "<tr>" +
+                            "<td>" + tutor.id + "</td>" +
+                            "<td>" + tutor.nome + "</td>" +
+                            "<td>" + tutor.email + "</td>" +
+                            "<td>" + tutor.telefone + "</td>" +
+                            "<td>" +
+                            "<a href='/tutores/detalhar?tutor.id=" + tutor.id + "'>Detalhar</a> | " +
+                            "<a href='/tutores/remover?id=" + tutor.id + "' onclick='return confirm(\"Confirma exclusão?\")'>Excluir</a> | " +
+                            "<a href='/tutores/editar?id=" + tutor.id + "'>Editar</a>" +
+                            "</td>" +
+                            "</tr>";
+                        $("#tabela-corpo").append(row);
+                    });
+                }
+            },
+            error: function() {
+                alert("Erro ao buscar tutores");
+            }
+        });
+    });
+});
+</script>

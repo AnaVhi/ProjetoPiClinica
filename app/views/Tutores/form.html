@@ -1,6 +1,6 @@
 #{extends 'main.html' /}
 
-#{if t}
+#{if tutor}
     #{set title:'Edição de Tutor' /}
 #{/if}
 #{else}
@@ -10,78 +10,81 @@
 <!-- ALERTA DE ERROS -->
 #{ifErrors}
 <div class="alert alert-warning alert-dismissible fade show" role="alert">
-  <ul>
-    #{errors}
-      <li>${error.key} - ${error}</li>
-    #{/errors}
-  </ul>
-  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <ul>
+        #{errors}
+        <li>${error.key} - ${error}</li>
+        #{/errors}
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 #{/ifErrors}
 
 <!-- BARRA DE NAVEGAÇÃO -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top d-flex justify-content-between align-items-center px-4">
-  <div class="d-flex align-items-center">
-    <img src="@{'/public/images/logoB.png'}" alt="Logo" class="logo-img me-2">
-  </div>
-  <div>
-    <a href="@{Application.paginaInicialAdmin()}" class="btn btn-primary custom-btn me-2">Página Inicial</a>
-  </div>
+    <div class="d-flex align-items-center">
+        <img src="@{'/public/images/logoB.png'}" alt="Logo" class="logo-img me-2">
+    </div>
+    <div>
+        <a href="@{Application.paginaInicialAdmin()}" class="btn btn-primary custom-btn me-2">Página Inicial</a>
+    </div>
 </nav>
 
 <!-- FORMULÁRIO -->
-<form action="@{Tutores.salvar}" method="POST" class="mt-5 pt-5" novalidate>
-
+<form action="@{Tutores.salvar}" method="POST" class="mt-5 pt-5">
     <!-- Campo oculto de ID -->
-    <input type="hidden" name="t.id" value="${t?.id}" />
+    <input type="hidden" name="t.id" value="${tutor?.id}" />
 
     <!-- Nome -->
     <div class="mb-3">
-        <label class="form-label">Nome:</label>
+        <label class="form-label">Nome: *</label>
         <input class="form-control" type="text"
                name="t.nome"
-               value="${flash['t.nome'] ? flash['t.nome'] : t?.nome}" />
+               value="${flash['t.nome'] ? flash['t.nome'] : tutor?.nome}" />
         <span class="error">#{error 't.nome' /}</span>
     </div>
 
     <!-- Email -->
     <div class="mb-3">
-        <label class="form-label">Email:</label>
+        <label class="form-label">Email: *</label>
         <input class="form-control" type="email"
                name="t.email"
-               value="${flash['t.email'] ? flash['t.email'] : t?.email}" />
+               value="${flash['t.email'] ? flash['t.email'] : tutor?.email}" />
         <span class="error">#{error 't.email' /}</span>
-    </div>
-
-    <!-- Telefone -->
-    <div class="mb-3">
-        <label class="form-label">Telefone:</label>
-        <input class="form-control" type="text"
-               name="t.telefone"
-               value="${flash['t.telefone'] ? flash['t.telefone'] : t?.telefone}" />
-        <span class="error">#{error 't.telefone' /}</span>
     </div>
 
     <!-- CPF -->
     <div class="mb-3">
-        <label class="form-label">CPF:</label>
+        <label class="form-label">CPF: * (Formato: 000.000.000-00)</label>
         <input class="form-control" type="text"
                name="t.cpf"
-               value="${flash['t.cpf'] ? flash['t.cpf'] : t?.cpf}" />
+               value="${flash['t.cpf'] ? flash['t.cpf'] : tutor?.cpf}"
+               placeholder="000.000.000-00" />
         <span class="error">#{error 't.cpf' /}</span>
     </div>
 
+    <!-- Telefone -->
+    <div class="mb-3">
+        <label class="form-label">Telefone: * (Formato: 00000-0000)</label>
+        <input class="form-control" type="text"
+               name="t.telefone"
+               value="${flash['t.telefone'] ? flash['t.telefone'] : tutor?.telefone}"
+               placeholder="00000-0000" />
+        <span class="error">#{error 't.telefone' /}</span>
+    </div>
+
     <!-- BOTÃO DE AÇÃO -->
-    #{if t?.id != null}
+    #{if tutor?.id != null}
         <input class="btn btn-primary custom-btn me-2"
-              type="submit"
+               onclick="return confirm('Deseja confirmar a edição?')"
+               type="submit"
                value="Editar" />
     #{/if}
-
-    #{if t?.id == null}
+    #{if tutor?.id == null}
         <input class="btn btn-primary custom-btn me-2"
+               onclick="return confirm('Deseja confirmar o cadastro?')"
                type="submit"
                value="Cadastrar" />
     #{/if}
-
+    
+    <a href="@{Tutores.listar(null)}" class="btn btn-secondary">Cancelar</a>
 </form>
